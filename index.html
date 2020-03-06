@@ -8,7 +8,7 @@
     <meta name="generator" content="VuePress 1.3.1">
     <link rel="icon" href="/nix-zh/logo.png">
     
-    <link rel="preload" href="/nix-zh/assets/css/0.styles.bc7d9574.css" as="style"><link rel="preload" href="/nix-zh/assets/js/app.c6c019d8.js" as="script"><link rel="preload" href="/nix-zh/assets/js/2.4808ab9e.js" as="script"><link rel="preload" href="/nix-zh/assets/js/5.a6ed09fb.js" as="script"><link rel="prefetch" href="/nix-zh/assets/js/3.3b36edd3.js"><link rel="prefetch" href="/nix-zh/assets/js/4.8f722a0b.js"><link rel="prefetch" href="/nix-zh/assets/js/6.d0ab2d44.js">
+    <link rel="preload" href="/nix-zh/assets/css/0.styles.bc7d9574.css" as="style"><link rel="preload" href="/nix-zh/assets/js/app.7aaf37c6.js" as="script"><link rel="preload" href="/nix-zh/assets/js/2.4808ab9e.js" as="script"><link rel="preload" href="/nix-zh/assets/js/5.edccd588.js" as="script"><link rel="prefetch" href="/nix-zh/assets/js/3.3b36edd3.js"><link rel="prefetch" href="/nix-zh/assets/js/4.8f722a0b.js"><link rel="prefetch" href="/nix-zh/assets/js/6.d0ab2d44.js">
     <link rel="stylesheet" href="/nix-zh/assets/css/0.styles.bc7d9574.css">
   </head>
   <body>
@@ -42,7 +42,26 @@ Retype new UNIX password: ***
 $ passwd eelco
 </code></pre></div><p>再来安装一些软件。一个实例是：</p> <div class="language- extra-class"><pre class="language-text"><code>$ nix-env -qaP \*
 </code></pre></div><p>这样展示了哪些包是可用的，如果安装 w3m 浏览器：</p> <div class="language- extra-class"><pre class="language-text"><code>$ nix-env -f '&lt;nixpkgs&gt;' -iA w3m
-</code></pre></div></li></ol> <h3 id="_2-4-安装小记"><a href="#_2-4-安装小记" class="header-anchor">#</a> 2.4. 安装小记</h3></div> <!----></main></div><div class="global-ui"></div></div>
-    <script src="/nix-zh/assets/js/app.c6c019d8.js" defer></script><script src="/nix-zh/assets/js/2.4808ab9e.js" defer></script><script src="/nix-zh/assets/js/5.a6ed09fb.js" defer></script>
+</code></pre></div></li></ol> <h3 id="_2-4-安装小记"><a href="#_2-4-安装小记" class="header-anchor">#</a> 2.4. 安装小记</h3> <p>总结一下，<a href="https://nixos.org/nixos/manual/index.html#ex-install-sequence" target="_blank" rel="noopener noreferrer">样例 2.3，将 NixOS 安装在<code>/dev/sda</code>上<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a>展示了一个典型的将 NixOS 安装在空磁盘上的命令顺序。<a href="https://nixos.org/nixos/manual/index.html#ex-config" target="_blank" rel="noopener noreferrer">样例 2.4，NixOS 配置<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a>展示了配置对应的 Nix 表述。</p> <p><strong>样例 2.1. NixOS 在<code>/dev/sda</code> （MBR）上的分区示范</strong></p> <div class="language- extra-class"><pre class="language-text"><code>#parted /dev/sda -- mklabel msdos
+#parted /dev/sda -- mkpart primary 1MiB -8GiB
+#parted /dev/sda -- mkpart primary linux-swap -8GiB 100%
+</code></pre></div><p><strong>样例 2.1. NixOS 在<code>/dev/sda</code> （UEFI）上的分区示范</strong></p> <div class="language- extra-class"><pre class="language-text"><code>#parted /dev/sda -- mklabel gpt
+#parted /dev/sda -- mkpart primary 512MiB -8GiB
+#parted /dev/sda -- mkpart primary linux-swap -8GiB 100%
+#parted /dev/sda -- mkpart ESP fat32 1MiB 512MiB
+#parted /dev/sda -- set 3 boot on
+</code></pre></div><p><strong>在<code>/dev/sda/</code>上安装 NixOS 的命令</strong></p> <p>磁盘需要预先分区。</p> <div class="language- extra-class"><pre class="language-text"><code>#mkfs.ext4 -L nixos /dev/sda1
+#mkswap -L swap /dev/sda2
+#swapon /dev/sda2
+#mkfs.fat -F 32 -n boot /dev/sda3        # (for UEFI systems only)
+#mount /dev/disk/by-label/nixos /mnt
+#mkdir -p /mnt/boot                      # (for UEFI systems only)
+#mount /dev/disk/by-label/boot /mnt/boot # (for UEFI systems only)
+#nixos-generate-config --root /mnt
+#nano /mnt/etc/nixos/configuration.nix
+#nixos-install
+#reboot
+</code></pre></div></div> <!----></main></div><div class="global-ui"></div></div>
+    <script src="/nix-zh/assets/js/app.7aaf37c6.js" defer></script><script src="/nix-zh/assets/js/2.4808ab9e.js" defer></script><script src="/nix-zh/assets/js/5.edccd588.js" defer></script>
   </body>
 </html>
